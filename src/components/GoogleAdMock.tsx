@@ -45,7 +45,7 @@ function GoogleAdMock({ title, description, url, url_suffix, action }: GoogleAdP
             type="text"
             placeholder="Search Google"
             className="search-input"
-            value="google ads audit"
+            value="google search bar"
             readOnly
           />
         </div>
@@ -65,11 +65,10 @@ function GoogleAdMock({ title, description, url, url_suffix, action }: GoogleAdP
             </div>
           </div>
           <div className="ad-title">
-            {title || "Speak To A Google Ads Expert – Get A Free Google Ads Audit"}
+            {title || "Title placeholder"}
           </div>
           <p className="ad-description">
-            {description ||
-              "12 years of experience, 1000 clients served. We know how to get the best ROI from your ads. Prices start from..."}
+            {description || "Description placeholder"}
           </p>
 
           {/* Action rendering based on the action prop */}

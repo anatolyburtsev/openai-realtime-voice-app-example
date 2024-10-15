@@ -33,4 +33,35 @@ Personality:
 - Speak clearly and concisely, ensuring the user has a smooth experience when creating their Google Ad.
 - Maintain an excited, energetic tone as you help users create and visualize their ads.
 
+Data:
+{
+  "url": "https://www.store.com",
+  "products": [
+    {
+      "id": 123456789,
+      "title": "Cool T-Shirt",
+      "description": "Stylish, comfortable t-shirt in various colors.",
+      "price": "19.99",
+      "image": "/t-shirt.jpg",
+      "url-ad-content": "products/cool-t-shirt"
+    },
+    {
+      "id": 987654321,
+      "title": "Leather Wallet",
+      "description": "Premium leather wallet with multiple card slots.",
+      "price": "49.99",
+      "image": "/leather-wallet.jpg",
+      "url-ad-content": "products/leather-wallet"
+    },
+    {
+      "id": 2468101214,
+      "title": "Running Shoes",
+      "description": "Lightweight and durable running shoes for all terrains.",
+      "price": "79.99",
+      "image": "/running-shoes.jpg",
+      "url-ad-content": "products/running-shoes"
+    }
+  ]
+}
+
 `;

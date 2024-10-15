@@ -129,10 +129,10 @@ export function GoogleAdPage() {
 
   const [title, setTitle] = useState('Buy the Best Shoes Online');
   const [description, setDescription] = useState('Find the latest styles of shoes at amazing prices. Shop now!');
-  const [url, setUrl] = useState('www.bestshoes.com');
+  const [url, setUrl] = useState('www.beststore.com');
   const [urlAdContent, setUrlAdContent] = useState('ad-content');
   const [actionType, setActionType] = useState<GoogleAdActionProps['type']>('call');
-  const [actionValue, setActionValue] = useState('761245871281');
+  const [actionValue, setActionValue] = useState('778-888-34-11');
 
   /**
    * Utility for formatting the timing of logs
@@ -479,6 +479,10 @@ export function GoogleAdPage() {
               type: 'string',
               description: 'Description of the Google Ad.',
             },
+            urlAdContent: {
+              type: 'string',
+              description: 'url ad content of the Google Ad.',
+            },
             action: {
               type: 'object',
               properties: {
@@ -495,13 +499,16 @@ export function GoogleAdPage() {
               required: ['type', 'value'],
             },
           },
-          required: ['title', 'description', 'action'],
+          required: ['title', 'description', 'action', 'urlAdContent', 'image'],
         },
       },
-      async ({ title, description, action }: { title: string; description: string; action: GoogleAdActionProps }) => {
+      async ({ title, description, action, urlAdContent, image }:
+               { title: string; description: string; action: GoogleAdActionProps,
+                 urlAdContent: string, image: string}) => {
         // Set the current state based on the input args from the tool
         setTitle(title);
         setDescription(description);
+        setUrlAdContent(urlAdContent);
         setActionType(action.type);
         setActionValue(action.value);
 
@@ -512,6 +519,23 @@ export function GoogleAdPage() {
           action,
           fullUrl: `${url}/${urlAdContent}`,
         };
+      }
+    );
+
+    client.addTool(
+      {
+        name: 'publish_google_ad',
+        description: 'Publish current version of Google Ad.',
+        parameters: { },
+      },
+      async () => {
+        setTitle("");
+        setDescription("");
+        setUrlAdContent("");
+        setActionType("nothing");
+        setActionValue("");
+
+        return {"status": "Successfully published"}
       }
     );
 
@@ -826,40 +850,6 @@ export function GoogleAdPage() {
             />
           </div>
         </div>
-        {/*<div className="content-right">*/}
-        {/*  <div className="content-block map">*/}
-        {/*    <div className="content-block-title">get_weather()</div>*/}
-        {/*    <div className="content-block-title bottom">*/}
-        {/*      {marker?.location || 'not yet retrieved'}*/}
-        {/*      {!!marker?.temperature && (*/}
-        {/*        <>*/}
-        {/*          <br />*/}
-        {/*          🌡️ {marker.temperature.value} {marker.temperature.units}*/}
-        {/*        </>*/}
-        {/*      )}*/}
-        {/*      {!!marker?.wind_speed && (*/}
-        {/*        <>*/}
-        {/*          {' '}*/}
-        {/*          🍃 {marker.wind_speed.value} {marker.wind_speed.units}*/}
-        {/*        </>*/}
-        {/*      )}*/}
-        {/*    </div>*/}
-        {/*    <div className="content-block-body full">*/}
-        {/*      {coords && (*/}
-        {/*        <Map*/}
-        {/*          center={[coords.lat, coords.lng]}*/}
-        {/*          location={coords.location}*/}
-        {/*        />*/}
-        {/*      )}*/}
-        {/*    </div>*/}
-        {/*  </div>*/}
-        {/*  <div className="content-block kv">*/}
-        {/*    <div className="content-block-title">set_memory()</div>*/}
-        {/*    <div className="content-block-body content-kv">*/}
-        {/*      {JSON.stringify(memoryKv, null, 2)}*/}
-        {/*    </div>*/}
-        {/*  </div>*/}
-        {/*</div>*/}
       </div>
     </div>
   );
