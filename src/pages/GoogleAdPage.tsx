@@ -1,3 +1,5 @@
+import GoogleAdMock, { GoogleAdActionProps } from '../components/GoogleAdMock';
+
 /**
  * Running a local relay server will allow you to hide your API key
  * and run custom logic on the server
@@ -16,7 +18,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { RealtimeClient } from '@openai/realtime-api-beta';
 import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools/index.js';
-import { instructions } from '../utils/conversation_config.js';
+import { googleAdInstructions, instructions } from '../utils/conversation_config.js';
 import { WavRenderer } from '../utils/wav_renderer';
 
 import { X, Edit, Zap, ArrowUp, ArrowDown } from 'react-feather';
@@ -25,7 +27,7 @@ import { Toggle } from '../components/toggle/Toggle';
 import { Map } from '../components/Map';
 
 import './ConsolePage.scss';
-import { isJsxOpeningLikeElement } from 'typescript';
+import { Box, Heading, Input, Stack, Textarea, Text, VStack, Select } from '@chakra-ui/react';
 
 /**
  * Type for result from get_weather() function call
@@ -124,6 +126,13 @@ export function GoogleAdPage() {
     lng: -122.418137,
   });
   const [marker, setMarker] = useState<Coordinates | null>(null);
+
+  const [title, setTitle] = useState('Buy the Best Shoes Online');
+  const [description, setDescription] = useState('Find the latest styles of shoes at amazing prices. Shop now!');
+  const [url, setUrl] = useState('www.bestshoes.com');
+  const [urlAdContent, setUrlAdContent] = useState('ad-content');
+  const [actionType, setActionType] = useState<GoogleAdActionProps['type']>('call');
+  const [actionValue, setActionValue] = useState('761245871281');
 
   /**
    * Utility for formatting the timing of logs
@@ -377,81 +386,132 @@ export function GoogleAdPage() {
     const client = clientRef.current;
 
     // Set instructions
-    client.updateSession({ instructions: instructions });
+    client.updateSession({ instructions: googleAdInstructions});
     // Set transcription, otherwise we don't get user transcriptions back
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
 
     // Add tools
+    // client.addTool(
+    //   {
+    //     name: 'set_memory',
+    //     description: 'Saves important data about the user into memory.',
+    //     parameters: {
+    //       type: 'object',
+    //       properties: {
+    //         key: {
+    //           type: 'string',
+    //           description:
+    //             'The key of the memory value. Always use lowercase and underscores, no other characters.',
+    //         },
+    //         value: {
+    //           type: 'string',
+    //           description: 'Value can be anything represented as a string',
+    //         },
+    //       },
+    //       required: ['key', 'value'],
+    //     },
+    //   },
+    //   async ({ key, value }: { [key: string]: any }) => {
+    //     setMemoryKv((memoryKv) => {
+    //       const newKv = { ...memoryKv };
+    //       newKv[key] = value;
+    //       return newKv;
+    //     });
+    //     return { ok: true };
+    //   }
+    // );
+    // client.addTool(
+    //   {
+    //     name: 'get_weather',
+    //     description:
+    //       'Retrieves the weather for a given lat, lng coordinate pair. Specify a label for the location.',
+    //     parameters: {
+    //       type: 'object',
+    //       properties: {
+    //         lat: {
+    //           type: 'number',
+    //           description: 'Latitude',
+    //         },
+    //         lng: {
+    //           type: 'number',
+    //           description: 'Longitude',
+    //         },
+    //         location: {
+    //           type: 'string',
+    //           description: 'Name of the location',
+    //         },
+    //       },
+    //       required: ['lat', 'lng', 'location'],
+    //     },
+    //   },
+    //   async ({ lat, lng, location }: { [key: string]: any }) => {
+    //     setMarker({ lat, lng, location });
+    //     setCoords({ lat, lng, location });
+    //     const result = await fetch(
+    //       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
+    //     );
+    //     const json = await result.json();
+    //     const temperature = {
+    //       value: json.current.temperature_2m as number,
+    //       units: json.current_units.temperature_2m as string,
+    //     };
+    //     const wind_speed = {
+    //       value: json.current.wind_speed_10m as number,
+    //       units: json.current_units.wind_speed_10m as string,
+    //     };
+    //     setMarker({ lat, lng, location, temperature, wind_speed });
+    //     return json;
+    //   }
+    // );
+
     client.addTool(
       {
-        name: 'set_memory',
-        description: 'Saves important data about the user into memory.',
+        name: 'generate_google_ad',
+        description: 'Generates a Google Ad preview based on provided ad parameters (title, description, and action).',
         parameters: {
           type: 'object',
           properties: {
-            key: {
+            title: {
               type: 'string',
-              description:
-                'The key of the memory value. Always use lowercase and underscores, no other characters.',
+              description: 'Title of the Google Ad.',
             },
-            value: {
+            description: {
               type: 'string',
-              description: 'Value can be anything represented as a string',
+              description: 'Description of the Google Ad.',
+            },
+            action: {
+              type: 'object',
+              properties: {
+                type: {
+                  type: 'string',
+                  enum: ['call', 'custom', 'nothing'],
+                  description: 'Type of the action for the ad.',
+                },
+                value: {
+                  type: 'string',
+                  description: 'Value associated with the action (phone number or custom text).',
+                },
+              },
+              required: ['type', 'value'],
             },
           },
-          required: ['key', 'value'],
+          required: ['title', 'description', 'action'],
         },
       },
-      async ({ key, value }: { [key: string]: any }) => {
-        setMemoryKv((memoryKv) => {
-          const newKv = { ...memoryKv };
-          newKv[key] = value;
-          return newKv;
-        });
-        return { ok: true };
-      }
-    );
-    client.addTool(
-      {
-        name: 'get_weather',
-        description:
-          'Retrieves the weather for a given lat, lng coordinate pair. Specify a label for the location.',
-        parameters: {
-          type: 'object',
-          properties: {
-            lat: {
-              type: 'number',
-              description: 'Latitude',
-            },
-            lng: {
-              type: 'number',
-              description: 'Longitude',
-            },
-            location: {
-              type: 'string',
-              description: 'Name of the location',
-            },
-          },
-          required: ['lat', 'lng', 'location'],
-        },
-      },
-      async ({ lat, lng, location }: { [key: string]: any }) => {
-        setMarker({ lat, lng, location });
-        setCoords({ lat, lng, location });
-        const result = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
-        );
-        const json = await result.json();
-        const temperature = {
-          value: json.current.temperature_2m as number,
-          units: json.current_units.temperature_2m as string,
+      async ({ title, description, action }: { title: string; description: string; action: GoogleAdActionProps }) => {
+        // Set the current state based on the input args from the tool
+        setTitle(title);
+        setDescription(description);
+        setActionType(action.type);
+        setActionValue(action.value);
+
+        // Return the generated ad (or update state/display accordingly in your UI)
+        return {
+          title,
+          description,
+          action,
+          fullUrl: `${url}/${urlAdContent}`,
         };
-        const wind_speed = {
-          value: json.current.wind_speed_10m as number,
-          units: json.current_units.wind_speed_10m as string,
-        };
-        setMarker({ lat, lng, location, temperature, wind_speed });
-        return json;
       }
     );
 
@@ -532,6 +592,81 @@ export function GoogleAdPage() {
               <div className="visualization-entry server">
                 <canvas ref={serverCanvasRef} />
               </div>
+            </div>
+            <div className="google-ad-controls">
+              <Stack direction={{ base: 'column', md: 'row' }} spacing={10} p={5}>
+                {/* Left side: Input Fields */}
+                <VStack spacing={4} flex={1}>
+                  <Heading size="lg">Google Ad Controls</Heading>
+                  <Box w="100%">
+                    <Text mb="2">Title:</Text>
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Enter ad title"
+                    />
+                  </Box>
+                  <Box w="100%">
+                    <Text mb="2">Description:</Text>
+                    <Textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Enter ad description"
+                    />
+                  </Box>
+                  <Box w="100%">
+                    <Text mb="2">URL:</Text>
+                    <Input
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      placeholder="Enter URL"
+                    />
+                  </Box>
+                  <Box w="100%">
+                    <Text mb="2">url ad content:</Text>
+                    <Input
+                      value={urlAdContent}
+                      onChange={(e) => setUrlAdContent(e.target.value)}
+                      placeholder="Enter URL ad content"
+                    />
+                  </Box>
+                  <Box w="100%">
+                    <Text mb="2">Action Type:</Text>
+                    <Select
+                      value={actionType}
+                      onChange={(e) => setActionType(e.target.value as GoogleAdActionProps['type'])}
+                    >
+                      <option value="call">Call</option>
+                      <option value="custom">Custom Text</option>
+                      <option value="nothing">Nothing</option>
+                    </Select>
+                  </Box>
+                  {actionType !== 'nothing' && (
+                    <Box w="100%">
+                      <Text mb="2">Action Value:</Text>
+                      <Input
+                        value={actionValue}
+                        onChange={(e) => setActionValue(e.target.value)}
+                        placeholder={actionType === 'call' ? 'Enter phone number' : 'Enter custom action'}
+                      />
+                    </Box>
+                  )}
+                </VStack>
+
+                {/* Right side: Live Ad Preview */}
+                <VStack flex={1}>
+                  <Heading size="lg">Live Ad Preview</Heading>
+                  <Box w="100%" p={4} borderWidth={1} borderRadius="md" boxShadow="md">
+                    <GoogleAdMock
+                      title={title}
+                      description={description}
+                      url={url}
+                      url_suffix={urlAdContent}
+                      action={{ type: actionType, value: actionValue }}
+                    />
+                  </Box>
+                </VStack>
+              </Stack>
             </div>
             <div className="content-block-title">events</div>
             <div className="content-block-body" ref={eventsScrollRef}>
@@ -691,40 +826,40 @@ export function GoogleAdPage() {
             />
           </div>
         </div>
-        <div className="content-right">
-          <div className="content-block map">
-            <div className="content-block-title">get_weather()</div>
-            <div className="content-block-title bottom">
-              {marker?.location || 'not yet retrieved'}
-              {!!marker?.temperature && (
-                <>
-                  <br />
-                  🌡️ {marker.temperature.value} {marker.temperature.units}
-                </>
-              )}
-              {!!marker?.wind_speed && (
-                <>
-                  {' '}
-                  🍃 {marker.wind_speed.value} {marker.wind_speed.units}
-                </>
-              )}
-            </div>
-            <div className="content-block-body full">
-              {coords && (
-                <Map
-                  center={[coords.lat, coords.lng]}
-                  location={coords.location}
-                />
-              )}
-            </div>
-          </div>
-          <div className="content-block kv">
-            <div className="content-block-title">set_memory()</div>
-            <div className="content-block-body content-kv">
-              {JSON.stringify(memoryKv, null, 2)}
-            </div>
-          </div>
-        </div>
+        {/*<div className="content-right">*/}
+        {/*  <div className="content-block map">*/}
+        {/*    <div className="content-block-title">get_weather()</div>*/}
+        {/*    <div className="content-block-title bottom">*/}
+        {/*      {marker?.location || 'not yet retrieved'}*/}
+        {/*      {!!marker?.temperature && (*/}
+        {/*        <>*/}
+        {/*          <br />*/}
+        {/*          🌡️ {marker.temperature.value} {marker.temperature.units}*/}
+        {/*        </>*/}
+        {/*      )}*/}
+        {/*      {!!marker?.wind_speed && (*/}
+        {/*        <>*/}
+        {/*          {' '}*/}
+        {/*          🍃 {marker.wind_speed.value} {marker.wind_speed.units}*/}
+        {/*        </>*/}
+        {/*      )}*/}
+        {/*    </div>*/}
+        {/*    <div className="content-block-body full">*/}
+        {/*      {coords && (*/}
+        {/*        <Map*/}
+        {/*          center={[coords.lat, coords.lng]}*/}
+        {/*          location={coords.location}*/}
+        {/*        />*/}
+        {/*      )}*/}
+        {/*    </div>*/}
+        {/*  </div>*/}
+        {/*  <div className="content-block kv">*/}
+        {/*    <div className="content-block-title">set_memory()</div>*/}
+        {/*    <div className="content-block-body content-kv">*/}
+        {/*      {JSON.stringify(memoryKv, null, 2)}*/}
+        {/*    </div>*/}
+        {/*  </div>*/}
+        {/*</div>*/}
       </div>
     </div>
   );

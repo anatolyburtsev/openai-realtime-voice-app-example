@@ -1,7 +1,7 @@
 import React from "react";
 import "./GoogleAdMock.css";
 
-type GoogleAdActionProps = {
+export type GoogleAdActionProps = {
   type: "call" | "custom" | "nothing";
   value: string;
 }
